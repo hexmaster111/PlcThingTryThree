@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlcThingTryThree", "PlcThingTryThree\PlcThingTryThree.csproj", "{8E27D203-617B-4865-B9EE-3239F2D42D63}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlcTryCommon", "PlcTryCommon\PlcTryCommon.csproj", "{757C826E-5DA0-461D-AF89-2410726F8712}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8E27D203-617B-4865-B9EE-3239F2D42D63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E27D203-617B-4865-B9EE-3239F2D42D63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E27D203-617B-4865-B9EE-3239F2D42D63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E27D203-617B-4865-B9EE-3239F2D42D63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{757C826E-5DA0-461D-AF89-2410726F8712}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{757C826E-5DA0-461D-AF89-2410726F8712}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{757C826E-5DA0-461D-AF89-2410726F8712}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{757C826E-5DA0-461D-AF89-2410726F8712}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
