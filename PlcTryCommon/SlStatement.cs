@@ -3,12 +3,14 @@
 public class SlStatement
 {
     public AbstractSyntaxTree SyntaxTree;
+    public Lexer Lexer;
     public string[] LoadElement;
 
-    private SlStatement(AbstractSyntaxTree syntaxTree, string[] loadElement)
+    private SlStatement(AbstractSyntaxTree syntaxTree, Lexer lexer, string[] loadElement)
     {
         SyntaxTree = syntaxTree;
         LoadElement = loadElement;
+        Lexer = lexer;
     }
 
     public static SlStatement Factory(string statementLine, out string error)
@@ -24,6 +26,7 @@ public class SlStatement
         var code = parts[0];
         var loadElements = parts[1..];
         var syntaxTree = AbstractSyntaxTree.Parse(code);
-        return new SlStatement(syntaxTree, loadElements);
+        var lexer = Lexer.Lex(syntaxTree);
+        return new SlStatement(syntaxTree, lexer, loadElements);
     }
 }

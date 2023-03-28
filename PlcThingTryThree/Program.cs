@@ -55,6 +55,6 @@ BOOL REMS I003
 
 
 var doc = SlDocument.Factory(OrAndThree);
-var diagram = SLTextRenderer.GetAsciiDiagram(doc);
+
 
 Console.ReadKey();
