@@ -60,9 +60,9 @@ BOOL REMS  I003
 
 public static class LatterDiagramParser
 {
-    public static void ParseText(string code, out string[] err, out LatterDiagram diagram)
+    internal static void ParseText(string code, out string err, out LatterDiagram diagram)
     {
-        err = Array.Empty<string>();
+        err = null;
         diagram = null;
 
         var lines = code.Split(Environment.NewLine);

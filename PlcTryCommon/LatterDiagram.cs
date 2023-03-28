@@ -1,6 +1,6 @@
 ﻿namespace PlcTryCommon;
 
-public class LatterDiagram
+internal class LatterDiagram
 {
     public LatterDiagram(List<Variable> variables, List<string> lines)
     {

@@ -4,7 +4,7 @@ using PlcTryCommon;
 
 Console.WriteLine("Hello, World!");
 
-const string TestCode =
+const string Latching =
     @"[VAR]
 BOOL START I000
 BOOL STOP I001
@@ -13,10 +13,48 @@ BOOL REMO I002
 BOOL REMS I003
 [END-VAR]
 [SL]
-(I000 OR X000 OR (I003 AND I002)) AND !I001 = X000
+( ( #START | #M0 ) & ! #STOP ) = M0
 [END-SL]";
 
-LatterDiagramParser.ParseText(TestCode, out var err, out var diagram);
-SLTextRenderer.GetAsciiDiagram(diagram.Lines, diagram.Variables, out var error, out var asciiDiagram);
-Console.WriteLine(asciiDiagram);
+const string OrThree =
+    @"[VAR]
+BOOL START I000
+BOOL STOP I001
+BOOL M0 X000
+BOOL REMO I002
+BOOL REMS I003
+[END-VAR]
+[SL]
+( #START | #STOP | #M0) = M0
+[END-SL]";
+
+const string AndThree =
+    @"[VAR]
+BOOL START I000
+BOOL STOP I001
+BOOL M0 X000
+BOOL REMO I002
+BOOL REMS I003
+[END-VAR]
+[SL]
+( #START & #STOP & #M0 ) = M0
+[END-SL]";
+
+
+const string OrAndThree =
+    @"[VAR]
+BOOL START I000
+BOOL STOP I001
+BOOL M0 X000
+BOOL REMO I002
+BOOL REMS I003
+[END-VAR]
+[SL]
+( ( #FIRST & #SECOND & #THIRD ) & ( #FOURTH | #FIFTH | #SIXTH ) ) = #M0
+[END-SL]";
+
+
+var doc = SlDocument.Factory(OrAndThree);
+var diagram = SLTextRenderer.GetAsciiDiagram(doc);
+
 Console.ReadKey();

@@ -4,69 +4,49 @@ namespace PlcTryCommon;
 
 public static class SLTextRenderer
 {
-    public static void GetAsciiDiagram(
-        List<string> statementLists,
-        List<Variable> variables,
-        out string error,
-        out string diagram
-    )
+    private record DisplayTokens(Token Token, int Row, int Column);
+
+
+    public static string GetAsciiDiagram(SlDocument document)
     {
-        error = null;
-        diagram = null;
+        var sb = new StringBuilder();
 
-        var rungs = new List<string>();
-
-        var idName = new Dictionary<string, Variable>();
-        foreach (var variable in variables)
+        foreach (var statement in document.Statements)
         {
-            idName.Add(variable.MapId, variable);
+            int row = 0;
+            int column = 0;
+            List<DisplayTokens> displayTokens = new();
+            TraverseTree(statement.SyntaxTree.Root, ref row, ref column, displayTokens);
         }
 
-        foreach (var list in statementLists)
-        {
-            GetSingleLatterRung(list, out var err, out var rung, idName);
-            if (err != null)
-            {
-                error = err;
-                return;
-            }
-
-            rungs.Add(rung);
-        }
+        return sb.ToString();
     }
 
-
-    private static void GetSingleLatterRung
-    (
-        string statement,
-        out string? error,
-        out string rung,
-        Dictionary<string, Variable> idName)
+    private static void TraverseTree(Node root, ref int row, ref int column, List<DisplayTokens> displayTokens)
     {
-        const int maxWidth = 80;
-        const string contactNo = "---] [---";
-        const string contactNc = "---]/[---";
-        const string coil = "---O---";
-        const string wire = "-------";
-        const string boundingBar = "|";
+        //Go left into the tree
+        if (root.Left != null)
+        {
+            TraverseTree(root.Left, ref row, ref column, displayTokens);
+        }
 
-        var sb = new StringBuilder();
-        sb.Append(boundingBar);
-
-        //split the statment into parts on space, and, or , = ! and ()
-        
-
-        throw new NotImplementedException();
+        //We are now all the way left, so we can handle the current node
+        switch (root.Token.Type)
+        {
+            case TokenType.OpenParen:
+                break;
+            case TokenType.CloseParen:
+                break;
+            case TokenType.Not:
+                break;
+            case TokenType.And:
+                break;
+            case TokenType.Or:
+                break;
+            case TokenType.IoMapId:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
     }
 }
-
-/*
-(I000 OR X000 OR (I003 AND I002)) AND !I001 = X000
-\   START           STOP         M0   |
-\---| |--------------| |---------O----|
-\    M0           |                   |
-\---| |-----------                    |
-\   REMO    REMS  |                   |
-\---| |------| |---                   |
-\                                     |
-*/
