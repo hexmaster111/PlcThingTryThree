@@ -2,11 +2,13 @@
 
 public class SlStatement
 {
+    public string Code;
+    public List<Token> Tokens;
     public AbstractSyntaxTree SyntaxTree;
     public Lexer Lexer;
     public string[] LoadElement;
 
-    private SlStatement(AbstractSyntaxTree syntaxTree, Lexer lexer, string[] loadElement)
+    private SlStatement(AbstractSyntaxTree syntaxTree, Lexer lexer, string[] loadElement, string code)
     {
         SyntaxTree = syntaxTree;
         LoadElement = loadElement;
@@ -25,8 +27,9 @@ public class SlStatement
 
         var code = parts[0];
         var loadElements = parts[1..];
-        var syntaxTree = AbstractSyntaxTree.Parse(code);
+        var tokens = Token.Tokenize(code);
+        var syntaxTree = AbstractSyntaxTree.Parse(tokens);
         var lexer = Lexer.Lex(syntaxTree);
-        return new SlStatement(syntaxTree, lexer, loadElements);
+        return new SlStatement(syntaxTree, lexer, loadElements, code);
     }
 }

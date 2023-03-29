@@ -4,15 +4,13 @@ public class AbstractSyntaxTree
 {
     public Node Root;
 
-    public AbstractSyntaxTree(Node root)
+    private AbstractSyntaxTree(Node root)
     {
         Root = root;
     }
 
-    public static AbstractSyntaxTree Parse(string statement)
+    public static AbstractSyntaxTree Parse(List<Token> tokens)
     {
-        statement = statement.Trim();
-        var tokens = Token.Tokenize(statement);
         var root = ParseTokens(tokens);
         return new AbstractSyntaxTree(root);
     }
@@ -31,13 +29,13 @@ public class AbstractSyntaxTree
     private static Node ParseOr(List<Token> tokens)
     {
         // Parse the left operand
-        Node left = ParseAnd(tokens);
+        var left = ParseAnd(tokens);
 
         // If the next token is an OR operator, parse the right operand and create a new OR node
         while (tokens.Count > 0 && tokens[0].Type == TokenType.Or)
         {
             tokens.RemoveAt(0); // Consume the OR operator
-            Node right = ParseAnd(tokens);
+            var right = ParseAnd(tokens);
             left = new Node(new Token(TokenType.Or, "|"), left, right);
         }
 
@@ -47,13 +45,13 @@ public class AbstractSyntaxTree
     private static Node ParseAnd(List<Token> tokens)
     {
         // Parse the left operand
-        Node left = ParseNot(tokens);
+        var left = ParseNot(tokens);
 
         // If the next token is an AND operator, parse the right operand and create a new AND node
         while (tokens.Count > 0 && tokens[0].Type == TokenType.And)
         {
             tokens.RemoveAt(0); // Consume the AND operator
-            Node right = ParseNot(tokens);
+            var right = ParseNot(tokens);
             left = new Node(new Token(TokenType.And, "&"), left, right);
         }
 
@@ -66,7 +64,7 @@ public class AbstractSyntaxTree
         if (tokens.Count > 0 && tokens[0].Type == TokenType.Not)
         {
             tokens.RemoveAt(0); // Consume the NOT operator
-            Node child = ParseNot(tokens);
+            var child = ParseNot(tokens);
             return new Node(new Token(TokenType.Not, "!"), child, null);
         }
 
