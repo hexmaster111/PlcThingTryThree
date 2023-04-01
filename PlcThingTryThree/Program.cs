@@ -1,8 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using PlcTryCommon;
+using PlcTryStringWriterRenderer;
 
-Console.WriteLine("Hello, World!");
 
 const string Latching =
     @"[VAR]
@@ -55,6 +55,5 @@ BOOL REMS I003
 
 
 var doc = SlDocument.Factory(OrAndThree);
-
-
-Console.ReadKey();
+var renderer = new TextRenderer();
+Console.Write(renderer.GetString());

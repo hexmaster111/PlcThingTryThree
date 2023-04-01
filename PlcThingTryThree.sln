@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlcThingTryThree", "PlcThin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlcTryCommon", "PlcTryCommon\PlcTryCommon.csproj", "{757C826E-5DA0-461D-AF89-2410726F8712}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlcTryStringWriterRenderer", "PlcTryStringWriterRenderer\PlcTryStringWriterRenderer.csproj", "{633FCC86-AC18-4F38-BD08-093BD560BB7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{757C826E-5DA0-461D-AF89-2410726F8712}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{757C826E-5DA0-461D-AF89-2410726F8712}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{757C826E-5DA0-461D-AF89-2410726F8712}.Release|Any CPU.Build.0 = Release|Any CPU
+		{633FCC86-AC18-4F38-BD08-093BD560BB7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{633FCC86-AC18-4F38-BD08-093BD560BB7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{633FCC86-AC18-4F38-BD08-093BD560BB7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{633FCC86-AC18-4F38-BD08-093BD560BB7B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

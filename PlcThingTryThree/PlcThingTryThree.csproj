@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\PlcTryCommon\PlcTryCommon.csproj" />
+      <ProjectReference Include="..\PlcTryStringWriterRenderer\PlcTryStringWriterRenderer.csproj" />
     </ItemGroup>
 
 </Project>
