@@ -16,28 +16,30 @@ public class TextRenderer
             {
                 new DisplayColDEV.Element()
                 {
-                    EType = DisplayColDEV.Element.ElementType.ContactNormalyOpen,
-                    Name = "START BUTTON",
+                    EType = DisplayColDEV.Element.ElementType.ContactNormallyOpen,
+                    Name = "START BTN",
                     Row = 0,
-                    Col = 0
+                    Col = 0,
+                    ContinueLine = true
                 },
                 new DisplayColDEV.Element()
                 {
-                    EType = DisplayColDEV.Element.ElementType.ContactNormalyOpen,
+                    EType = DisplayColDEV.Element.ElementType.ContactNormallyOpen,
                     Name = "M0",
                     Row = 1,
                     Col = 0,
-                    ReturnBranch = true,
-    },
+                    UpRight = true,
+                },
             },
-
         };
 
         var colOne = new DisplayColDEV
         {
-            ElementsInCol = new List<DisplayColDEV.Element>{
-                new DisplayColDEV.Element(){
-                    EType = DisplayColDEV.Element.ElementType.ContactNormalyClosed,
+            ElementsInCol = new List<DisplayColDEV.Element>
+            {
+                new DisplayColDEV.Element()
+                {
+                    EType = DisplayColDEV.Element.ElementType.ContactNormallyClosed,
                     Name = "STOP BTN",
                     Row = 0,
                     Col = 1,
@@ -47,11 +49,14 @@ public class TextRenderer
 
         var load = new DisplayColDEV
         {
-            ElementsInCol = new List<DisplayColDEV.Element>{
-                new DisplayColDEV.Element(){
+            ElementsInCol = new List<DisplayColDEV.Element>
+            {
+                new DisplayColDEV.Element()
+                {
                     EType = DisplayColDEV.Element.ElementType.Coil,
                     Name = "M0",
                     Row = 0,
+                    Col = 2,
                     IsLoad = true
                 }
             }
@@ -71,8 +76,9 @@ public class TextRenderer
 
     private static class ASSETS
     {
-        public const int DiagramWidth = 80;
+        public const int DiagramWidth = 70;
         public const int DiagramItemWidth = 10;
+        public const int ItemsInDiagram = DiagramWidth / DiagramItemWidth;
         public const string Name = "[  NAME  ]";
         public const string Spacer = "    SP    ";
         public const string FillerSpacer = "    FI    ";
@@ -83,74 +89,150 @@ public class TextRenderer
         public const string Coil = "---(  )---";
         public const string LatchCoil = "---(L)----";
         public const string ResetCoil = "---(R)----";
-        public const string NOContact = "---| |----";
-        public const string NCContact = "---|/|----";
+        public const string NoContact = "---| |----";
+        public const string NcContact = "---|/|----";
+
         public static void AutoRenderTest(IEnumerable<DisplayColDEV> elementCols)
         {
-
-            string ForceToLen(int len, string str) => str.Length > len ? str.Substring(0, len) : str.PadRight(len);
+            string ForceToLen(int len, string str) => str.Length > len ? str[..len] : str.PadRight(len);
+            string WrapInBrackets(string str) => $"[{str}]";
             bool IsNameLine(int lineIndex) => lineIndex % 2 == 0;
-            void placeOnNameLine(int lineIndex, string item)
-            {
-
-            }
-
-            void placeOnElementLine(int lineIndex, string item)
-            {
-
-            }
+            bool[] GetNewRow() => new bool[DiagramWidth / DiagramItemWidth];
+            List<bool[]> rowPlaced = new();
             List<string> lines = new();
 
-            foreach (var col in elementCols)
-            {
-                for (int i = 0; i < col.ElementsInCol.Count; i++)
-                {
-                    DisplayColDEV.Element elem = col.ElementsInCol[i];
 
-                    //Every Element takes up two lines, one for the normallised label, and one
-                    //for symble, the name line starts at zero and is alwase even
-                    string labelShort = ForceToLen(10, elem.Name);
-                    string symble = elem.Symble;
+            void PlaceOnLine(int lineIndex, int rowIndex, string item, bool doNotMark = false)
+            {
+                var rowIndexCorrected = rowIndex * DiagramItemWidth;
+
+                if (lines.Count <= lineIndex)
+                {
+                    var line = new string(' ', DiagramWidth);
+                    line = line[..rowIndexCorrected] + item + line[(rowIndexCorrected + item.Length)..];
+                    lines.Add(line);
+                    rowPlaced.Add(GetNewRow());
+                    if (!doNotMark) rowPlaced[lineIndex][rowIndex] = true;
+                }
+                else
+                {
+                    var line = lines[lineIndex];
+                    line = line[..rowIndexCorrected] + item + line[(rowIndexCorrected + item.Length)..];
+                    lines[lineIndex] = line;
+                    if (!doNotMark) rowPlaced[lineIndex][rowIndex] = true;
                 }
             }
 
-            var retString = "";
-            foreach (var s in lines) { retString += s + Environment.NewLine; }
-            Console.Write(retString);
+            void PlaceOnNameLine(int lineItemIndex, int rowIndex, string item, bool doNotMark = false)
+            {
+                var lineIndexCorrected = lineItemIndex * 2; //because we have two lines per item
+                //Name should be even
+                Debug.Assert(IsNameLine(lineIndexCorrected), "On a name line");
+                PlaceOnLine(lineIndexCorrected, rowIndex, item, doNotMark);
+            }
 
+            void PlaceOnElementLine(int lineItemIndex, int rowIndex, string item, bool doNotMark = false)
+            {
+                var lineIndexCorrected = lineItemIndex * 2 + 1; //because we have two lines per item
+                //Element line should be odd
+                Debug.Assert(!IsNameLine(lineIndexCorrected), "On an element line");
+                PlaceOnLine(lineIndexCorrected, rowIndex, item, doNotMark);
+            }
+
+
+            foreach (var col in elementCols)
+            {
+                foreach (var elem in col.ElementsInCol)
+                {
+                    var label = WrapInBrackets(ForceToLen(8, elem.Name));
+                    var symbol = elem.Symbol;
+
+
+                    if (!elem.IsLoad)
+                    {
+                        PlaceOnNameLine(elem.Row, elem.Col, label);
+                        PlaceOnElementLine(elem.Row, elem.Col, symbol);
+                    }
+
+                    if (elem.IsLoad)
+                    {
+                        // Loads go on the far right of the diagram, if there is a load there already, we need to move it over
+                        // to the right, and place the new load there
+                        var loadCol = ItemsInDiagram - 1;
+                        while (rowPlaced[elem.Row][loadCol])
+                        {
+                            loadCol--;
+                        }
+
+                        PlaceOnNameLine(elem.Row, loadCol, label);
+                        PlaceOnElementLine(elem.Row, loadCol, symbol);
+                    }
+
+                    if (elem.ContinueLine)
+                    {
+                        for (int i = elem.Col; i < DiagramWidth / DiagramItemWidth; i++)
+                        {
+                            if (rowPlaced[elem.Row][i]) continue;
+                            PlaceOnNameLine(elem.Row, i, FillerSpacer, true);
+                            PlaceOnElementLine(elem.Row, i, Wire, true);
+                        }
+                    }
+
+                    if (elem.UpRight)
+                    {
+                        //Up bar for next element both on name and element line
+                        PlaceOnNameLine(elem.Row, elem.Col + 1, DownBar);
+                        PlaceOnElementLine(elem.Row, elem.Col + 1, DownBar);
+                    }
+                }
+            }
+            // Place the side bar down the left side, by shifting each row to the right by one, and placing a side bar
+            // in the new space
+
+            for (var rowIndex = 0; rowIndex < lines.Count; rowIndex++)
+            {
+                lines[rowIndex] = lines[rowIndex].Insert(0, SideBar);
+            }
+
+            var retString = lines.Aggregate("", (current, s) => current + (s + Environment.NewLine));
+
+            Console.Write(retString);
         }
+
         public static void TestRenderBranch()
         {
             List<string[]> rows = new();
             //TEST ONE, SIMPLE LATCH
-            rows.Add(new string[] { SideBar, Spacer, Name, Name, Spacer, Spacer, Spacer, Name });
-            rows.Add(new string[] { SideBar, Wire, NOContact, NCContact, Wire, Wire, Wire, Coil });
+            rows.Add(new[] { SideBar, Spacer, Name, Name, Spacer, Spacer, Spacer, Name });
+            rows.Add(new[] { SideBar, Wire, NoContact, NcContact, Wire, Wire, Wire, Coil });
             //down bar group
-            rows.Add(new string[] { SideBar, DownBarSpacer, DownBar, Name, DownBar, DownBarSpacer });
-            rows.Add(new String[] { SideBar, DownBarSpacer, DownBar, NOContact, DownBar, DownBarSpacer });
+            rows.Add(new[] { SideBar, DownBarSpacer, DownBar, Name, DownBar, DownBarSpacer });
+            rows.Add(new[] { SideBar, DownBarSpacer, DownBar, NoContact, DownBar, DownBarSpacer });
             //Spacer
-            rows.Add(new String[] { SideBar });
+            rows.Add(new[] { SideBar });
             //Next row Group
-            rows.Add(new String[] { SideBar, Spacer, Name, Spacer, Spacer, Spacer, Name });
-            rows.Add(new string[] { SideBar, Wire, NOContact, Wire, Wire, "----[NAME5", "67 1234567", " 1234567 ]" });
+            rows.Add(new[] { SideBar, Spacer, Name, Spacer, Spacer, Spacer, Name });
+            rows.Add(new[] { SideBar, Wire, NoContact, Wire, Wire, "----[NAME5", "67 1234567", " 1234567 ]" });
             //Spacer
-            rows.Add(new String[] { SideBar });
+            rows.Add(new[] { SideBar });
             //Row
-            rows.Add(new string[] { SideBar, Spacer, Name, Name, Name, Name, Spacer, Spacer, Name });
-            rows.Add(new string[] { SideBar, Wire, NOContact, NOContact, NOContact, NOContact, Wire, Wire, Coil });
-            rows.Add(new string[] { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, Name, DownBar, DownBarSpacer });
-            rows.Add(new string[] { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, NOContact, DownBar, DownBarSpacer });
-            rows.Add(new string[] { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, Name, DownBar, DownBarSpacer });
-            rows.Add(new string[] { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, NOContact, DownBar, DownBarSpacer });
-            rows.Add(new string[] { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, Name, DownBar, DownBarSpacer });
-            rows.Add(new string[] { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, NOContact, DownBar, DownBarSpacer });
+            rows.Add(new[] { SideBar, Spacer, Name, Name, Name, Name, Spacer, Spacer, Name });
+            rows.Add(new[] { SideBar, Wire, NoContact, NoContact, NoContact, NoContact, Wire, Wire, Coil });
+            rows.Add(new[] { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, Name, DownBar, DownBarSpacer });
+            rows.Add(new[]
+                { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, NoContact, DownBar, DownBarSpacer });
+            rows.Add(new[] { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, Name, DownBar, DownBarSpacer });
+            rows.Add(new[]
+                { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, NoContact, DownBar, DownBarSpacer });
+            rows.Add(new[] { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, Name, DownBar, DownBarSpacer });
+            rows.Add(new[]
+                { SideBar, Spacer, Spacer, Spacer, DownBarSpacer, DownBar, NoContact, DownBar, DownBarSpacer });
             //spacer
-            rows.Add(new String[] { SideBar });
+            rows.Add(new[] { SideBar });
             //Row
-            rows.Add(new string[] { SideBar, Wire, NOContact, NOContact, Wire, Wire, Wire });
-            rows.Add(new string[] { SideBar, Spacer, DownBarSpacer, DownBar, Name, Name, DownBar, DownBarSpacer });
-            rows.Add(new string[] { SideBar, Spacer, DownBarSpacer, DownBar, NOContact, NOContact, DownBar, DownBarSpacer });
-
+            rows.Add(new[] { SideBar, Wire, NoContact, NoContact, Wire, Wire, Wire });
+            rows.Add(new[] { SideBar, Spacer, DownBarSpacer, DownBar, Name, Name, DownBar, DownBarSpacer });
+            rows.Add(new[] { SideBar, Spacer, DownBarSpacer, DownBar, NoContact, NoContact, DownBar, DownBarSpacer });
 
 
             List<string> resList = new();
@@ -166,8 +248,10 @@ public class TextRenderer
                 {
                     rowString += ASSETS.FillerSpacer;
                 }
+
                 resList.Add(rowString);
             }
+
             var res = string.Empty;
             foreach (var line in resList)
             {
@@ -179,9 +263,10 @@ public class TextRenderer
 
             Console.WriteLine(res);
         }
+
         public static void TestRenderSingleLine()
         {
-            string[] thingsToRender = { NOContact, NCContact, Wire, Coil, LatchCoil, ResetCoil };
+            string[] thingsToRender = { NoContact, NcContact, Wire, Coil, LatchCoil, ResetCoil };
 
             var nameLine = new List<string>();
             var bodyLines = new List<string>();
@@ -210,24 +295,23 @@ public class TextRenderer
             public string Name;
             public ElementType EType;
 
-            public int Row, Col;
-            public bool ReturnBranch;
+            public bool UpRight;
+            public bool ContinueLine;
             public bool IsLoad;
+            public int Row, Col;
 
-            // public bool ContinueLeft;
-            // public bool ContinueRight;
             public enum ElementType
             {
-                ContactNormalyOpen,
-                ContactNormalyClosed,
+                ContactNormallyOpen,
+                ContactNormallyClosed,
                 Coil,
                 FunctionBlock
             }
 
-            public string Symble => EType switch
+            public string Symbol => EType switch
             {
-                ElementType.ContactNormalyOpen => ASSETS.NOContact,
-                ElementType.ContactNormalyClosed => ASSETS.NCContact,
+                ElementType.ContactNormallyOpen => ASSETS.NoContact,
+                ElementType.ContactNormallyClosed => ASSETS.NcContact,
                 ElementType.Coil => ASSETS.Coil,
                 ElementType.FunctionBlock => "!TODO Function Block",
                 _ => $"{EType} Is Not a valid Element Type"
