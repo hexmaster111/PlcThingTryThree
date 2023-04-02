@@ -29,6 +29,7 @@ public class TextRenderer
                     Row = 1,
                     Col = 0,
                     UpRight = true,
+                    UpLeft = false,
                 },
             },
         };
@@ -43,6 +44,15 @@ public class TextRenderer
                     Name = "STOP BTN",
                     Row = 0,
                     Col = 1,
+                },
+                new DisplayColDEV.Element()
+                {
+                    EType = DisplayColDEV.Element.ElementType.ContactNormallyOpen,
+                    Name = "VAR",
+                    Row = 1,
+                    Col = 1,
+                    UpLeft = true,
+                    UpRight = true,
                 }
             }
         };
@@ -102,9 +112,10 @@ public class TextRenderer
             List<string> lines = new();
 
 
-            void PlaceOnLine(int lineIndex, int rowIndex, string item, bool doNotMark = false)
+            void PlaceOnLine(int lineIndex, int rowIndex, string item, bool doNotMark = false, int downBarCount = 0)
             {
-                var rowIndexCorrected = rowIndex * DiagramItemWidth;
+                //Each down-bar is 1 char wide, so we need to correct the rowIndex by that amount 
+                var rowIndexCorrected = rowIndex * DiagramItemWidth + downBarCount;
 
                 if (lines.Count <= lineIndex)
                 {
@@ -123,35 +134,47 @@ public class TextRenderer
                 }
             }
 
-            void PlaceOnNameLine(int lineItemIndex, int rowIndex, string item, bool doNotMark = false)
+            void PlaceOnNameLine(int lineItemIndex, int rowIndex, string item, bool doNotMark = false,
+                int downBarCount = 0)
             {
                 var lineIndexCorrected = lineItemIndex * 2; //because we have two lines per item
                 //Name should be even
                 Debug.Assert(IsNameLine(lineIndexCorrected), "On a name line");
-                PlaceOnLine(lineIndexCorrected, rowIndex, item, doNotMark);
+                PlaceOnLine(lineIndexCorrected, rowIndex, item, doNotMark, downBarCount);
             }
 
-            void PlaceOnElementLine(int lineItemIndex, int rowIndex, string item, bool doNotMark = false)
+            void PlaceOnElementLine(int lineItemIndex, int rowIndex, string item, bool doNotMark = false,
+                int downBarCount = 0)
             {
                 var lineIndexCorrected = lineItemIndex * 2 + 1; //because we have two lines per item
                 //Element line should be odd
                 Debug.Assert(!IsNameLine(lineIndexCorrected), "On an element line");
-                PlaceOnLine(lineIndexCorrected, rowIndex, item, doNotMark);
+                PlaceOnLine(lineIndexCorrected, rowIndex, item, doNotMark, downBarCount);
             }
 
 
             foreach (var col in elementCols)
             {
+                var downBarCount = 0;
                 foreach (var elem in col.ElementsInCol)
                 {
                     var label = WrapInBrackets(ForceToLen(8, elem.Name));
                     var symbol = elem.Symbol;
 
+                    if (elem.UpLeft)
+                    {
+                        //Up bar for next element both on name and element line
+                        PlaceOnNameLine(elem.Row, elem.Col - 1, DownBar, false, downBarCount);
+                        PlaceOnElementLine(elem.Row, elem.Col - 1, DownBar, false, downBarCount);
+                        downBarCount++;
+                    }
+
+                  
 
                     if (!elem.IsLoad)
                     {
-                        PlaceOnNameLine(elem.Row, elem.Col, label);
-                        PlaceOnElementLine(elem.Row, elem.Col, symbol);
+                        PlaceOnNameLine(elem.Row, elem.Col, label, false, downBarCount);
+                        PlaceOnElementLine(elem.Row, elem.Col, symbol, false, downBarCount);
                     }
 
                     if (elem.IsLoad)
@@ -164,8 +187,8 @@ public class TextRenderer
                             loadCol--;
                         }
 
-                        PlaceOnNameLine(elem.Row, loadCol, label);
-                        PlaceOnElementLine(elem.Row, loadCol, symbol);
+                        PlaceOnNameLine(elem.Row, loadCol, label, false, downBarCount);
+                        PlaceOnElementLine(elem.Row, loadCol, symbol, false, downBarCount);
                     }
 
                     if (elem.ContinueLine)
@@ -173,16 +196,17 @@ public class TextRenderer
                         for (int i = elem.Col; i < DiagramWidth / DiagramItemWidth; i++)
                         {
                             if (rowPlaced[elem.Row][i]) continue;
-                            PlaceOnNameLine(elem.Row, i, FillerSpacer, true);
-                            PlaceOnElementLine(elem.Row, i, Wire, true);
+                            PlaceOnNameLine(elem.Row, i, FillerSpacer, true, downBarCount);
+                            PlaceOnElementLine(elem.Row, i, Wire, true, downBarCount);
                         }
                     }
-
+                    
                     if (elem.UpRight)
                     {
                         //Up bar for next element both on name and element line
-                        PlaceOnNameLine(elem.Row, elem.Col + 1, DownBar);
-                        PlaceOnElementLine(elem.Row, elem.Col + 1, DownBar);
+                        PlaceOnNameLine(elem.Row, elem.Col + 1, DownBar, false, downBarCount);
+                        PlaceOnElementLine(elem.Row, elem.Col + 1, DownBar, false, downBarCount);
+                        downBarCount++;
                     }
                 }
             }
@@ -296,6 +320,7 @@ public class TextRenderer
             public string Name;
             public ElementType EType;
 
+            public bool UpLeft;
             public bool UpRight;
             public bool ContinueLine;
             public bool IsLoad;
