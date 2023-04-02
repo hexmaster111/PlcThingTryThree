@@ -17,7 +17,7 @@ public class TextRenderer
                 new DisplayColDEV.Element()
                 {
                     EType = DisplayColDEV.Element.ElementType.ContactNormalyOpen,
-                    Name = "START BTN",
+                    Name = "START BUTTON",
                     Row = 0,
                     Col = 0
                 },
@@ -26,8 +26,9 @@ public class TextRenderer
                     EType = DisplayColDEV.Element.ElementType.ContactNormalyOpen,
                     Name = "M0",
                     Row = 1,
-                    Col = 0
-                },
+                    Col = 0,
+                    ReturnBranch = true,
+    },
             },
 
         };
@@ -84,28 +85,32 @@ public class TextRenderer
         public const string ResetCoil = "---(R)----";
         public const string NOContact = "---| |----";
         public const string NCContact = "---|/|----";
-
         public static void AutoRenderTest(IEnumerable<DisplayColDEV> elementCols)
         {
+
+            string ForceToLen(int len, string str) => str.Length > len ? str.Substring(0, len) : str.PadRight(len);
+            bool IsNameLine(int lineIndex) => lineIndex % 2 == 0;
+            void placeOnNameLine(int lineIndex, string item)
+            {
+
+            }
+
+            void placeOnElementLine(int lineIndex, string item)
+            {
+
+            }
             List<string> lines = new();
+
             foreach (var col in elementCols)
             {
                 for (int i = 0; i < col.ElementsInCol.Count; i++)
                 {
                     DisplayColDEV.Element elem = col.ElementsInCol[i];
-                    //if(lines[i]) is valid, place the element on that line, else
-                    //Add a new line and place the element
 
-                    if (i > lines.Count - 1)
-                    {
-                        //i is larger then the amount of lines in the lines list, add a new line
-                        //and append our element into it
-                        lines.Add(elem.ToString());
-                        continue;
-                    }
-
-                    //We have a line that we can place this element in already, just append it
-                    lines[i] += elem.ToString();
+                    //Every Element takes up two lines, one for the normallised label, and one
+                    //for symble, the name line starts at zero and is alwase even
+                    string labelShort = ForceToLen(10, elem.Name);
+                    string symble = elem.Symble;
                 }
             }
 
@@ -206,7 +211,7 @@ public class TextRenderer
             public ElementType EType;
 
             public int Row, Col;
-
+            public bool ReturnBranch;
             public bool IsLoad;
 
             // public bool ContinueLeft;
@@ -219,18 +224,14 @@ public class TextRenderer
                 FunctionBlock
             }
 
-            public override string ToString()
+            public string Symble => EType switch
             {
-                return EType switch
-                {
-                    ElementType.Coil => ASSETS.Coil,
-                    ElementType.ContactNormalyClosed => ASSETS.NCContact,
-                    ElementType.ContactNormalyOpen => ASSETS.NOContact,
-                    ElementType.FunctionBlock => "!TODO Function Block",
-                    _ => $"{EType} Is Not a valid Element Type"
-                };
-            }
+                ElementType.ContactNormalyOpen => ASSETS.NOContact,
+                ElementType.ContactNormalyClosed => ASSETS.NCContact,
+                ElementType.Coil => ASSETS.Coil,
+                ElementType.FunctionBlock => "!TODO Function Block",
+                _ => $"{EType} Is Not a valid Element Type"
+            };
         }
-
     }
 }
