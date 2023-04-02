@@ -186,12 +186,13 @@ public class TextRenderer
                     }
                 }
             }
-            // Place the side bar down the left side, by shifting each row to the right by one, and placing a side bar
-            // in the new space
 
+
+            //Add the start and end bars
             for (var rowIndex = 0; rowIndex < lines.Count; rowIndex++)
             {
                 lines[rowIndex] = lines[rowIndex].Insert(0, SideBar);
+                lines[rowIndex] += SideBar;
             }
 
             var retString = lines.Aggregate("", (current, s) => current + (s + Environment.NewLine));
